@@ -6,17 +6,19 @@ import time
 
 import httpx
 
+from ..cache import MISS, NOT_FOUND, TTLCache
 from ..errors import NotFoundError, UpstreamError
 
 RETRY_STATUS = {429, 500, 502, 503, 504}
 MAX_RETRY_AFTER = 10.0  # never sleep longer than this for a Retry-After header
+NEGATIVE_TTL = 300.0  # a 404 is cached for 5 minutes at most
 
 
 class Upstream:
     def __init__(self, source: str, base_url: str, client: httpx.AsyncClient,
-                 min_interval: float, retries: int = 2):
+                 min_interval: float, retries: int = 2, cache: TTLCache | None = None):
         self.source, self.base_url, self.client = source, base_url.rstrip("/"), client
-        self.min_interval, self.retries = min_interval, retries
+        self.min_interval, self.retries, self.cache = min_interval, retries, cache
         self._lock = asyncio.Lock()
         self._last = 0.0
 
@@ -38,6 +40,19 @@ class Upstream:
 
     async def get_json(self, path: str, params: dict | None = None):
         url = f"{self.base_url}{path}"
+        key = (url, tuple(sorted((params or {}).items())))
+        if self.cache is not None:
+            hit = self.cache.get(key)
+            if hit is NOT_FOUND:
+                raise NotFoundError(self.source, f"{self.source} has no such record")
+            if hit is not MISS:
+                return hit
+        data = await self._fetch(url, params)
+        if self.cache is not None:
+            self.cache.set(key, data)
+        return data
+
+    async def _fetch(self, url: str, params: dict | None):
         last_detail, timed_out = "no response", False
         for attempt in range(self.retries + 1):
             await self._wait_turn()
@@ -50,6 +65,8 @@ class Upstream:
                 last_detail, timed_out = f"network error: {type(e).__name__}", False
             else:
                 if resp.status_code == 404:
+                    if self.cache is not None:
+                        self.cache.set((url, tuple(sorted((params or {}).items()))), NOT_FOUND, NEGATIVE_TTL)
                     raise NotFoundError(self.source, f"{self.source} has no such record")
                 if resp.status_code not in RETRY_STATUS:
                     if resp.is_success:

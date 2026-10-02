@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 class ChemblRef(BaseModel):
     chembl_id: str
+    parent_chembl_id: str | None = Field(None, description="Parent molecule (salts and forms share one)")
     pref_name: str | None = None
     max_phase: float | None = Field(None, description="Highest clinical phase reached (4 = approved drug)")
     molecule_type: str | None = None
@@ -36,3 +37,23 @@ class Target(BaseModel):
     function: str | None = Field(None, description="First FUNCTION annotation in UniProt")
     reviewed: bool = Field(description="True for Swiss-Prot (manually curated) entries")
     url: str
+
+
+class TargetHit(BaseModel):
+    chembl_target_id: str
+    name: str | None = None
+    target_type: str | None = Field(None, description="e.g. SINGLE PROTEIN, PROTEIN FAMILY")
+    organism: str | None = None
+    mechanisms: list[str] = Field(description="Mechanism-of-action texts ChEMBL records for this target")
+    action_types: list[str] = Field(description="e.g. INHIBITOR, AGONIST")
+    proteins: list[Target] = Field(description="UniProt entries behind the target; a family has several")
+
+
+class CompoundTargets(BaseModel):
+    query: str
+    cid: int
+    name: str | None = None
+    chembl_id: str | None = None
+    parent_chembl_id: str | None = None
+    targets: list[TargetHit] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
