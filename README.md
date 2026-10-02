@@ -1,5 +1,7 @@
 # Compound/target lookup API
 
+**Live API:** https://bio-lookup-api.onrender.com (Swagger UI: [/docs](https://bio-lookup-api.onrender.com/docs); try [/compound/imatinib/targets](https://bio-lookup-api.onrender.com/compound/imatinib/targets))
+
 **Question.** One API that resolves a compound to its properties, bioactivities and protein targets.
 
 ## Data
@@ -72,5 +74,5 @@ mapping and the accession check were each switched off by hand to confirm a test
 - Upstream schemas can change; the parsers are the only place that reads them.
 
 ## Status
-Local: all endpoints checked against the live services (aspirin, imatinib, caffeine, EGFR). Public deploy pending.
+Deployed on Render (free plan, Frankfurt). All endpoints checked against the live services, locally and on the deployed instance.
 Part of a 30-project computational biology and scientific software portfolio.
