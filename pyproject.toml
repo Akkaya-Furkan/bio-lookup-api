@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bio-lookup-api"
+version = "0.1.0"
+description = "One API that resolves a compound to PubChem and ChEMBL data and a UniProt accession to its protein"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["fastapi>=0.110", "httpx>=0.27", "uvicorn[standard]>=0.29"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "respx>=0.21", "ruff>=0.5"]
+
+[tool.setuptools.packages.find]
+include = ["bio_lookup*"]
+
+[tool.ruff]
+line-length = 100
