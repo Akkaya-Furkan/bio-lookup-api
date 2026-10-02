@@ -1,0 +1,11 @@
+# Render Blueprint: New > Blueprint > pick this repo. Builds the Dockerfile; Render injects $PORT.
+services:
+  - type: web
+    name: bio-lookup-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /health
+    envVars:
+      - key: BIO_CACHE_TTL
+        value: "3600"

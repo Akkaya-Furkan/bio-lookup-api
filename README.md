@@ -22,6 +22,9 @@ uvicorn bio_lookup.main:app --host 127.0.0.1 --port 8000     # Swagger UI at /do
 ```
 Docker: `docker build -t bio-lookup-api . && docker run -p 8000:8000 bio-lookup-api` (honours `$PORT`).
 
+Deploy on Render: New > Blueprint, pick this repo; `render.yaml` sets the Docker build, the free plan, the
+Frankfurt region and the `/health` check. The free plan sleeps when idle, so the first request after a pause is slow.
+
 ## Endpoints
 | Endpoint | Returns |
 | --- | --- |
